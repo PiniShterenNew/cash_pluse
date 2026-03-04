@@ -23,8 +23,10 @@ description: |
 
 ## RLS (Row Level Security)
 - EVERY table must have RLS enabled
-- EVERY table needs at least: SELECT policy for owner, INSERT policy for authenticated
-- Pattern: `auth.uid() = user_id` for single-tenant
+- EVERY table needs at least: SELECT policy for company, INSERT policy for authenticated company members
+- Pattern for domain tables: `company_id = (auth.jwt() ->> 'company_id')::uuid`
+- Pattern for users table: `id = auth.uid()` OR `company_id = (auth.jwt() ->> 'company_id')::uuid`
+- Webhook/Edge Functions use service_role key — enforce company_id scoping in code
 - Test RLS with: `supabase test db` before deploying
 
 ## Migrations
@@ -45,15 +47,28 @@ description: |
 - Use Supabase channels, not raw WebSocket
 - Unsubscribe on component unmount
 
-## Database Schema (core tables)
-- profiles (id, user_id FK auth.users, business_name, business_type, sector)
-- invoices (id, user_id, client_id, number, amount, issued_date, due_date, status, payment_terms)
-- clients (id, user_id, name, contact_name, phone, email, reliability_score)
-- transactions (id, user_id, type enum, description, amount, date, category, is_recurring)
-- whatsapp_messages (id, user_id, invoice_id, client_id, template, sent_at, status)
-- settings (id, user_id, threshold, alert_preferences jsonb, whatsapp_config jsonb)
+## Multi-Tenant Model
+- Tenant unit = **company** (a business). One company can have multiple users.
+- RLS policy pattern: `company_id = (auth.jwt() ->> 'company_id')::uuid`
+- NEVER use `auth.uid() = user_id` for domain tables — use `company_id` scope.
+- Exception: `companies` and `users` tables themselves use `auth.uid()` checks.
+
+## Database Schema (canonical tables)
+- companies (id, name, registration_number, default_currency, timezone, whatsapp_config_status, payplus_config_status)
+- users (id FK auth.users, company_id FK companies, email, full_name, role enum owner/member)
+- clients (id, company_id, name, contact_name, phone_e164, email, reliability_score, total_debt_open, total_debt_paid, archived_at)
+- debts (id, company_id, client_id, title, invoice_reference, amount_total, amount_paid, amount_outstanding, currency, due_date, status, payment_link_url, expected_payment_date, last_reminder_sent_at)
+- payments (id, company_id, debt_id, provider 'payplus', provider_transaction_id, amount, status, raw_payload jsonb)
+- reminders (id, company_id, debt_id, client_id, channel 'whatsapp', template_key, rendered_message, status, sent_at, delivered_at, read_at)
+- activity_logs (id, company_id, actor_type, entity_type, entity_id, action, metadata jsonb)
+- prediction_snapshots (id, company_id, subject_type, subject_id, model_version, expected_payment_date, reliability_score, confidence_score)
+
+## DebtStatus Enum (canonical)
+`draft | open | due_today | overdue | partially_paid | paid | canceled | disputed`
 
 ## Indexes
-- invoices: (user_id, status), (user_id, due_date), (client_id)
-- transactions: (user_id, date), (user_id, type)
-- clients: (user_id)
+- debts: (company_id, status, due_date), (client_id)
+- payments: (debt_id)
+- reminders: (debt_id, sent_at DESC)
+- clients: (company_id)
+- activity_logs: (company_id, entity_type, entity_id, created_at DESC)
