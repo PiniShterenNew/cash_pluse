@@ -128,6 +128,16 @@ Key tokens:
 | `whatsapp-integration` | WhatsApp Cloud API, templates, webhooks |
 | `payplus-integration` | Payment links, PayPlus webhooks |
 | `posthog-analytics` | Event tracking, feature flags |
+| `data-fetching` | cache(), revalidate, Suspense, parallel fetch |
+| `realtime-subscriptions` | Live Kanban, payment events, WebSocket |
+| `ui-patterns` | Empty states, skeletons, pagination, toasts |
+| `openai-integration` | AI reminder drafts, Hebrew prompts, streaming |
+| `ai-predictions` | Reliability score, expected payment date |
+| `csv-import` | Hebrew CSV parsing, bulk insert, validation |
+| `performance` | Virtualization, React.memo, bundle splitting |
+| `accessibility` | Hebrew ARIA, focus management, RTL a11y |
+| `ux-interactions` | Micro-interactions, DnD, onboarding flow |
+| `design-advanced` | Debt row anatomy, charts, composer modal |
 
 ## Git
 - Conventional commits: feat:, fix:, chore:, refactor:, test:, docs:
