@@ -1,5 +1,11 @@
 # CLAUDE.md
 
+## Current Status
+- **Codebase:** Not initialized — no src/ or package.json yet (as of 2026-03-05)
+- **Active phase:** Phase 1 — Foundation (first task: initialize Next.js)
+- **Task list:** `docs/tasks.md` — full atomic breakdown with skill hints per task
+- **Env template:** `.env.example` — copy to `.env.local` and fill in all keys
+
 ## Project
 CashPulse — Cash-flow cockpit & collections management SaaS for Israeli SMBs (3-50 employees).
 RTL Hebrew-first. Solo developer, AI-assisted build. March 2026.
