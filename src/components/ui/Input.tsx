@@ -124,13 +124,13 @@ export function Label({ required, className, children, ...props }: LabelProps) {
 
 // ─── FormField ────────────────────────────────────────────────────────────────
 interface FormFieldProps {
-  label?: string;
-  htmlFor?: string;
-  error?: string;
-  hint?: string;
-  required?: boolean;
+  label?: string | undefined;
+  htmlFor?: string | undefined;
+  error?: string | undefined;
+  hint?: string | undefined;
+  required?: boolean | undefined;
   children: ReactNode;
-  className?: string;
+  className?: string | undefined;
 }
 
 export function FormField({

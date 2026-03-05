@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
+import { AuthProvider } from "@/components/ui/AuthProvider";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {
@@ -32,19 +33,21 @@ export default function RootLayout({
         />
       </head>
       <body>
-        {children}
-        <Toaster
-          position="top-center"
-          richColors
-          dir="rtl"
-          toastOptions={{
-            style: {
-              fontFamily: "Rubik, sans-serif",
-              borderRadius: "9999px",
-              fontSize: "14px",
-            },
-          }}
-        />
+        <AuthProvider>
+          {children}
+          <Toaster
+            position="top-center"
+            richColors
+            dir="rtl"
+            toastOptions={{
+              style: {
+                fontFamily: "Rubik, sans-serif",
+                borderRadius: "9999px",
+                fontSize: "14px",
+              },
+            }}
+          />
+        </AuthProvider>
       </body>
     </html>
   );

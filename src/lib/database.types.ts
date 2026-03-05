@@ -43,6 +43,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       users: {
         Row: {
@@ -78,6 +79,14 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "users_company_id_fkey";
+            columns: ["company_id"];
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       clients: {
         Row: {
@@ -125,6 +134,14 @@ export type Database = {
           updated_at?: string;
           archived_at?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: "clients_company_id_fkey";
+            columns: ["company_id"];
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       debts: {
         Row: {
@@ -202,6 +219,20 @@ export type Database = {
           updated_at?: string;
           closed_at?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: "debts_company_id_fkey";
+            columns: ["company_id"];
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "debts_client_id_fkey";
+            columns: ["client_id"];
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       payments: {
         Row: {
@@ -252,6 +283,14 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "payments_company_id_fkey";
+            columns: ["company_id"];
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       reminders: {
         Row: {
@@ -308,6 +347,14 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "reminders_company_id_fkey";
+            columns: ["company_id"];
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       activity_logs: {
         Row: {
@@ -343,6 +390,14 @@ export type Database = {
           metadata?: Json;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_company_id_fkey";
+            columns: ["company_id"];
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       prediction_snapshots: {
         Row: {
@@ -381,8 +436,19 @@ export type Database = {
           explanation?: Json;
           generated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "prediction_snapshots_company_id_fkey";
+            columns: ["company_id"];
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
+    Views: Record<never, never>;
+    Functions: Record<never, never>;
+    CompositeTypes: Record<never, never>;
     Enums: {
       debt_status: DebtStatus;
       user_role: "owner" | "member";
