@@ -1,5 +1,11 @@
 # CLAUDE.md
 
+## Current Status
+- **Codebase:** Not initialized — no src/ or package.json yet (as of 2026-03-05)
+- **Active phase:** Phase 1 — Foundation (first task: initialize Next.js)
+- **Task list:** `docs/tasks.md` — full atomic breakdown with skill hints per task
+- **Env template:** `.env.example` — copy to `.env.local` and fill in all keys
+
 ## Project
 CashPulse — Cash-flow cockpit & collections management SaaS for Israeli SMBs (3-50 employees).
 RTL Hebrew-first. Solo developer, AI-assisted build. March 2026.
@@ -12,7 +18,7 @@ RTL Hebrew-first. Solo developer, AI-assisted build. March 2026.
 - Backend/DB: Supabase (PostgreSQL + Auth + Realtime + Edge Functions + Storage)
 - Real-time: Supabase Realtime (WebSocket)
 - WhatsApp: WhatsApp Cloud API (Meta) via official SDK
-- Payments: Stripe or PayPlus (Israeli payment links)
+- Payments: PayPlus (Israeli payment gateway — payment links + webhooks)
 - Hosting: Vercel
 - Analytics: PostHog
 - Icons: lucide-react (stroke-width 1.5)
@@ -99,10 +105,45 @@ Key tokens:
 - Shadows: diffused, warm-tinted, NO borders on cards
 - Tone: friendly, warm, Hebrew, emoji-sprinkled
 
+## Data Model (canonical — resolves schema conflicts)
+- Tenant unit: **company** (not user). Use `company_id` for all domain table RLS.
+- Core tables: `companies`, `users`, `clients`, `debts`, `payments`, `reminders`, `activity_logs`, `prediction_snapshots`
+- Table name: **`debts`** (not `invoices`). The root `docs/database-schema.md` is an outdated draft — see `docs/database/database_schema.md` for authoritative DDL.
+- DebtStatus enum: `draft | open | due_today | overdue | partially_paid | paid | canceled | disputed`
+- RLS pattern: `company_id = (auth.jwt() ->> 'company_id')::uuid`
+- Payment provider: **PayPlus only** (no Stripe)
+
 ## Testing
 - Vitest + React Testing Library
 - Colocated: Component.test.tsx next to Component.tsx
 - TDD: red → green → refactor
+
+## Skills Reference (.claude/skills/)
+| Skill | When to use |
+|---|---|
+| `cashpulse-design` | ANY UI component, screen, layout, modal |
+| `rtl-hebrew` | RTL layout, Hebrew text, direction |
+| `nextjs-conventions` | Pages, layouts, routing, server/client components |
+| `supabase-patterns` | DB queries, migrations, RLS, Realtime, auth |
+| `state-management` | Zustand stores, optimistic updates |
+| `api-routes` | Server Actions, Route Handlers, webhooks |
+| `forms-validation` | react-hook-form + Zod, field errors |
+| `error-handling` | try/catch, error boundaries, toasts |
+| `typescript-patterns` | Types, unions, type guards, no-any |
+| `testing` | Vitest, RTL, mocking |
+| `whatsapp-integration` | WhatsApp Cloud API, templates, webhooks |
+| `payplus-integration` | Payment links, PayPlus webhooks |
+| `posthog-analytics` | Event tracking, feature flags |
+| `data-fetching` | cache(), revalidate, Suspense, parallel fetch |
+| `realtime-subscriptions` | Live Kanban, payment events, WebSocket |
+| `ui-patterns` | Empty states, skeletons, pagination, toasts |
+| `openai-integration` | AI reminder drafts, Hebrew prompts, streaming |
+| `ai-predictions` | Reliability score, expected payment date |
+| `csv-import` | Hebrew CSV parsing, bulk insert, validation |
+| `performance` | Virtualization, React.memo, bundle splitting |
+| `accessibility` | Hebrew ARIA, focus management, RTL a11y |
+| `ux-interactions` | Micro-interactions, DnD, onboarding flow |
+| `design-advanced` | Debt row anatomy, charts, composer modal |
 
 ## Git
 - Conventional commits: feat:, fix:, chore:, refactor:, test:, docs:
