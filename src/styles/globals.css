@@ -1,0 +1,163 @@
+@import "tailwindcss";
+
+/* ─── Google Fonts ───────────────────────────────────────────── */
+@import url("https://fonts.googleapis.com/css2?family=Varela+Round&family=Rubik:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap");
+
+/* ─── Design Tokens ──────────────────────────────────────────── */
+@theme {
+  /* Surfaces */
+  --color-surface-base: #FAFAF8;
+  --color-surface-card: #FFFFFF;
+  --color-surface-sunken: #F3F1ED;
+  --color-surface-overlay: rgba(30, 30, 25, 0.3);
+
+  /* Mint (Primary) */
+  --color-mint-50: #F0FDF6;
+  --color-mint-100: #DCFCE8;
+  --color-mint-200: #BBF7D1;
+  --color-mint-300: #86EFAC;
+  --color-mint-400: #4ADE80;
+  --color-mint-500: #22C55E;
+  --color-mint-600: #16A34A;
+  --color-mint-700: #15803D;
+
+  /* Sand (Neutrals) */
+  --color-sand-50: #FAFAF8;
+  --color-sand-100: #F5F3EF;
+  --color-sand-200: #E8E4DD;
+  --color-sand-300: #D4CFC5;
+  --color-sand-400: #A8A197;
+  --color-sand-500: #78716C;
+  --color-sand-600: #57534E;
+  --color-sand-700: #44403C;
+  --color-sand-800: #292524;
+  --color-sand-900: #1C1917;
+
+  /* Rose (Danger) */
+  --color-rose-50: #FFF5F5;
+  --color-rose-100: #FFE4E4;
+  --color-rose-200: #FFC9C9;
+  --color-rose-400: #F87171;
+  --color-rose-500: #E5484D;
+  --color-rose-600: #CE3E44;
+
+  /* Honey (Warning) */
+  --color-honey-50: #FFFCF0;
+  --color-honey-100: #FFF3CC;
+  --color-honey-400: #FACC15;
+  --color-honey-500: #EAB308;
+  --color-honey-600: #CA8A04;
+
+  /* Lavender (Pro) */
+  --color-lavender-50: #F8F5FF;
+  --color-lavender-100: #EDE9FE;
+  --color-lavender-400: #A78BFA;
+  --color-lavender-500: #8B5CF6;
+  --color-lavender-600: #7C3AED;
+
+  /* WhatsApp */
+  --color-whatsapp: #25D366;
+  --color-whatsapp-hover: #20BD5A;
+  --color-whatsapp-soft: #E8FBF0;
+
+  /* Typography */
+  --font-display: "Varela Round", sans-serif;
+  --font-body: "Rubik", sans-serif;
+  --font-mono: "DM Mono", monospace;
+
+  /* Radius */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(28, 25, 23, 0.04), 0 1px 2px rgba(28, 25, 23, 0.03);
+  --shadow-md: 0 4px 16px rgba(28, 25, 23, 0.06), 0 2px 4px rgba(28, 25, 23, 0.03);
+  --shadow-float: 0 12px 40px rgba(28, 25, 23, 0.07), 0 2px 8px rgba(28, 25, 23, 0.03);
+  --shadow-lg: 0 8px 32px rgba(28, 25, 23, 0.08), 0 4px 8px rgba(28, 25, 23, 0.03);
+  --shadow-xl: 0 16px 48px rgba(28, 25, 23, 0.10), 0 8px 16px rgba(28, 25, 23, 0.04);
+  --shadow-glow: 0 0 24px rgba(34, 197, 94, 0.20), 0 0 8px rgba(34, 197, 94, 0.10);
+  --shadow-inset: inset 0 2px 4px rgba(28, 25, 23, 0.06);
+
+  /* Animations */
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 150ms;
+  --duration-base: 280ms;
+  --duration-slow: 400ms;
+}
+
+/* ─── Base Styles ────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-body);
+  background-color: var(--color-surface-base);
+  color: var(--color-sand-800);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100dvh;
+}
+
+/* ─── Shimmer Animation ──────────────────────────────────────── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-sand-100) 25%,
+    var(--color-sand-50) 50%,
+    var(--color-sand-100) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ─── Fade In Animation ──────────────────────────────────────── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp var(--duration-base) var(--ease-smooth) both;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-sand-200);
+  border-radius: var(--radius-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-sand-300);
+}
+
+/* ─── Focus Ring ─────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-mint-400);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
