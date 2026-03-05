@@ -2,82 +2,85 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import type { Database } from "@/lib/database.types";
 
-const PROTECTED_PATHS = [
-  "/dashboard",
-  "/receivables",
-  "/cashflow",
-  "/clients",
-  "/messages",
-  "/reports",
-  "/settings",
-];
+const PROTECTED_PREFIXES = ["/dashboard", "/account", "/settings"];
+
+function isProtectedPath(pathname: string) {
+  return PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+  const { pathname } = request.nextUrl;
+  const isOnboardingPath = pathname.startsWith("/onboarding");
+  const isProtected = isProtectedPath(pathname);
 
-  const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet: Array<{ name: string; value: string; options: CookieOptions }>) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value),
-          );
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
-          );
+  // Middleware is scoped to protected and onboarding routes only,
+  // but keep a defensive early return for resilience.
+  if (!isProtected && !isOnboardingPath) {
+    return NextResponse.next();
+  }
+
+  let supabaseResponse = NextResponse.next({ request });
+  let user: { user_metadata?: { onboarding_complete?: boolean } } | null = null;
+
+  try {
+    const supabase = createServerClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet: Array<{ name: string; value: string; options: CookieOptions }>) {
+            cookiesToSet.forEach(({ name, value }) => {
+              request.cookies.set(name, value);
+            });
+            supabaseResponse = NextResponse.next({ request });
+            cookiesToSet.forEach(({ name, value, options }) => {
+              supabaseResponse.cookies.set(name, value, options);
+            });
+          },
         },
       },
-    },
-  );
+    );
 
-  const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user: fetchedUser },
+    } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
-  const isProtected = PROTECTED_PATHS.some((p) => pathname.startsWith(p));
-  const isOnboardingPath = pathname.startsWith("/onboarding");
-  const isAuthPath = pathname === "/login" || pathname === "/signup";
+    user = fetchedUser;
+  } catch {
+    // Resilient fallback for Edge runtime failures:
+    // treat request as unauthenticated instead of crashing middleware.
+    user = null;
+  }
+
   const isOnboardingComplete = user?.user_metadata?.onboarding_complete === true;
 
-  // 1. Unauthenticated → redirect to login for protected paths
-  if (isProtected && !user) {
+  // Unauthenticated access to protected/onboarding routes -> login
+  if (!user) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
-    loginUrl.searchParams.set("redirectTo", pathname);
+
+    if (isProtected) {
+      loginUrl.searchParams.set("redirectTo", pathname);
+    }
+
     return NextResponse.redirect(loginUrl);
   }
 
-  // 2. Unauthenticated → redirect to login for /onboarding
-  if (isOnboardingPath && !user) {
-    const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/login";
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // 3. Authenticated + onboarding NOT complete → redirect protected routes to /onboarding
-  if (user && isProtected && !isOnboardingComplete) {
+  // Authenticated + onboarding NOT complete -> protected routes go to onboarding
+  if (isProtected && !isOnboardingComplete) {
     const onboardingUrl = request.nextUrl.clone();
     onboardingUrl.pathname = "/onboarding";
     return NextResponse.redirect(onboardingUrl);
   }
 
-  // 4. Authenticated + onboarding complete + going to /onboarding or auth pages → redirect to dashboard
-  if (user && isOnboardingComplete && (isOnboardingPath || isAuthPath)) {
+  // Authenticated + onboarding complete + onboarding route -> dashboard
+  if (isOnboardingPath && isOnboardingComplete) {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = "/dashboard";
     return NextResponse.redirect(dashboardUrl);
-  }
-
-  // 5. Authenticated + onboarding NOT complete + going to auth pages → redirect to /onboarding
-  if (user && !isOnboardingComplete && isAuthPath) {
-    const onboardingUrl = request.nextUrl.clone();
-    onboardingUrl.pathname = "/onboarding";
-    return NextResponse.redirect(onboardingUrl);
   }
 
   return supabaseResponse;
@@ -85,7 +88,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Exclude static files and the OAuth callback route
-    "/((?!_next/static|_next/image|favicon.ico|auth/callback|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/dashboard/:path*",
+    "/account/:path*",
+    "/settings/:path*",
+    "/onboarding/:path*",
   ],
 };
