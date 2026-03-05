@@ -2,7 +2,15 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import type { Database } from "@/lib/database.types";
 
-const PROTECTED_PATHS = ["/dashboard", "/receivables", "/cashflow", "/clients", "/messages", "/reports", "/settings"];
+const PROTECTED_PATHS = [
+  "/dashboard",
+  "/receivables",
+  "/cashflow",
+  "/clients",
+  "/messages",
+  "/reports",
+  "/settings",
+];
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -32,7 +40,11 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isProtected = PROTECTED_PATHS.some((p) => pathname.startsWith(p));
+  const isOnboardingPath = pathname.startsWith("/onboarding");
+  const isAuthPath = pathname === "/login" || pathname === "/signup";
+  const isOnboardingComplete = user?.user_metadata?.onboarding_complete === true;
 
+  // 1. Unauthenticated → redirect to login for protected paths
   if (isProtected && !user) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
@@ -40,10 +52,32 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if ((pathname === "/login" || pathname === "/signup") && user) {
+  // 2. Unauthenticated → redirect to login for /onboarding
+  if (isOnboardingPath && !user) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // 3. Authenticated + onboarding NOT complete → redirect protected routes to /onboarding
+  if (user && isProtected && !isOnboardingComplete) {
+    const onboardingUrl = request.nextUrl.clone();
+    onboardingUrl.pathname = "/onboarding";
+    return NextResponse.redirect(onboardingUrl);
+  }
+
+  // 4. Authenticated + onboarding complete + going to /onboarding or auth pages → redirect to dashboard
+  if (user && isOnboardingComplete && (isOnboardingPath || isAuthPath)) {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = "/dashboard";
     return NextResponse.redirect(dashboardUrl);
+  }
+
+  // 5. Authenticated + onboarding NOT complete + going to auth pages → redirect to /onboarding
+  if (user && !isOnboardingComplete && isAuthPath) {
+    const onboardingUrl = request.nextUrl.clone();
+    onboardingUrl.pathname = "/onboarding";
+    return NextResponse.redirect(onboardingUrl);
   }
 
   return supabaseResponse;
@@ -51,6 +85,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Exclude static files and the OAuth callback route
+    "/((?!_next/static|_next/image|favicon.ico|auth/callback|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
