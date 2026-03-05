@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { Route } from "next";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -41,7 +42,7 @@ export function MobileBottomNav() {
         return (
           <Link
             key={item.href}
-            href={item.href}
+            href={item.href as Route}
             aria-current={isActive ? "page" : undefined}
             className={cn(
               "flex flex-col items-center gap-1 px-4 py-2",
